@@ -1,0 +1,24 @@
+{
+  "name": "Le Cahier de Conjugaison",
+  "short_name": "Conjugaison",
+  "description": "Application d'entraînement à la conjugaison française pour les élèves de 5e et 6e année du primaire",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#E9E2CB",
+  "theme_color": "#2C4A7C",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

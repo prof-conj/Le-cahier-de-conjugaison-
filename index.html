@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Le Cahier de Conjugaison</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="theme-color" content="#2C4A7C">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Conjugaison">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Patrick+Hand&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#FBF6E9;
+    --paper-line:#DCD2B8;
+    --margin-red:#D6534A;
+    --ink:#33302A;
+    --ink-blue:#2C4A7C;
+    --good:#5C8A5C;
+    --good-bg:#E7F1E3;
+    --bad:#D6534A;
+    --bad-bg:#FBE7E4;
+    --tab-inactive:#EFE7CE;
+    --stamp-red:#C43D3D;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:#E9E2CB;
+    font-family:'Nunito',sans-serif;
+    color:var(--ink);
+    min-height:100vh;
+    display:flex;
+    justify-content:center;
+    padding:24px 12px 60px;
+  }
+  .page{
+    width:100%;
+    max-width:640px;
+    background:
+      repeating-linear-gradient(
+        to bottom,
+        var(--paper) 0px, var(--paper) 35px,
+        var(--paper-line) 36px, var(--paper) 37px
+      );
+    border-radius:6px;
+    box-shadow:0 8px 30px rgba(0,0,0,0.18), 0 2px 6px rgba(0,0,0,0.12);
+    position:relative;
+    padding:28px 22px 28px 44px;
+    overflow:hidden;
+  }
+  .page::before{
+    content:"";
+    position:absolute;
+    top:0; bottom:0; left:32px;
+    width:2px;
+    background:var(--margin-red);
+    opacity:0.55;
+  }
+  header{
+    margin-bottom:18px;
+  }
+  h1{
+    font-family:'Patrick Hand',cursive;
+    font-size:2.1rem;
+    color:var(--ink-blue);
+    margin:0 0 2px 0;
+    line-height:1.1;
+  }
+  .subtitle{
+    font-size:0.95rem;
+    color:#6b6353;
+    font-weight:600;
+  }
+
+  /* Tabs = onglets de cahier */
+  .tabs{
+    display:flex;
+    gap:6px;
+    flex-wrap:wrap;
+    margin:18px 0 20px 0;
+  }
+  .tab{
+    font-family:'Patrick Hand',cursive;
+    font-size:1.05rem;
+    background:var(--tab-inactive);
+    border:2px solid #d8cba0;
+    border-bottom:none;
+    padding:6px 14px 8px;
+    border-radius:10px 10px 0 0;
+    cursor:pointer;
+    color:#7a6f4f;
+    transform:translateY(4px);
+    transition:transform .15s ease, background .15s ease, color .15s ease;
+  }
+  .tab:hover{ transform:translateY(0px); }
+  .tab.active{
+    background:var(--paper);
+    border-color:var(--ink-blue);
+    color:var(--ink-blue);
+    transform:translateY(0px);
+    box-shadow:0 -2px 0 var(--ink-blue) inset;
+  }
+
+  .groupSelect{
+    display:flex;
+    gap:8px;
+    margin-bottom:12px;
+    flex-wrap:wrap;
+    align-items:center;
+  }
+  .chip{
+    font-size:0.85rem;
+    font-weight:700;
+    padding:6px 12px;
+    border-radius:999px;
+    border:2px solid var(--ink-blue);
+    color:var(--ink-blue);
+    background:transparent;
+    cursor:pointer;
+  }
+  .chip.active{
+    background:var(--ink-blue);
+    color:#fff;
+  }
+  .chip.challenge{
+    border-color:#B8722A;
+    color:#B8722A;
+    margin-inline-start:auto;
+  }
+  .chip.challenge.active{
+    background:#B8722A;
+    color:#fff;
+  }
+
+  .timer-wrap{
+    width:100%;
+    height:8px;
+    background:#e6ddc0;
+    border-radius:999px;
+    overflow:hidden;
+    margin-bottom:20px;
+    display:none;
+  }
+  .timer-wrap.show{ display:block; }
+  .timer-fill{
+    height:100%;
+    width:100%;
+    background:#B8722A;
+    border-radius:999px;
+  }
+
+  .card{
+    background:rgba(255,255,255,0.5);
+    border:2px dashed #cabf99;
+    border-radius:14px;
+    padding:22px 18px;
+    text-align:center;
+    position:relative;
+    min-height:230px;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+  }
+  .prompt-label{
+    font-size:0.8rem;
+    text-transform:uppercase;
+    letter-spacing:1px;
+    color:#8a8069;
+    font-weight:700;
+    margin-bottom:6px;
+  }
+  .prompt{
+    font-family:'Patrick Hand',cursive;
+    font-size:1.9rem;
+    color:var(--ink);
+    margin-bottom:22px;
+  }
+  .prompt b{ color:var(--ink-blue); }
+
+  .choices{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:10px;
+    width:100%;
+  }
+  .choice-btn{
+    font-family:'Nunito',sans-serif;
+    font-size:1.05rem;
+    font-weight:700;
+    padding:12px 8px;
+    border-radius:10px;
+    border:2px solid #c9bd93;
+    background:#fff;
+    color:var(--ink);
+    cursor:pointer;
+    transition:transform .1s ease, background .15s ease, border-color .15s ease;
+  }
+  .choice-btn:hover{ transform:translateY(-2px); }
+  .choice-btn:disabled{ cursor:default; }
+  .choice-btn.correct{
+    background:var(--good-bg);
+    border-color:var(--good);
+    color:var(--good);
+  }
+  .choice-btn.wrong{
+    background:var(--bad-bg);
+    border-color:var(--bad);
+    color:var(--bad);
+  }
+
+  .feedback{
+    margin-top:16px;
+    font-family:'Patrick Hand',cursive;
+    font-size:1.2rem;
+    min-height:1.4em;
+  }
+  .feedback.good{ color:var(--good); }
+  .feedback.bad{ color:var(--bad); }
+
+  .next-btn{
+    margin-top:14px;
+    background:var(--ink-blue);
+    color:#fff;
+    border:none;
+    padding:10px 22px;
+    border-radius:999px;
+    font-weight:800;
+    font-size:0.95rem;
+    cursor:pointer;
+    display:none;
+  }
+
+  /* Stamp */
+  .stamp{
+    position:absolute;
+    top:14px; right:14px;
+    width:84px; height:84px;
+    background:#fff;
+    border:5px solid var(--stamp-red);
+    border-radius:50%;
+    color:var(--stamp-red);
+    font-family:'Patrick Hand',cursive;
+    font-weight:700;
+    font-size:1rem;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+    line-height:1.05;
+    box-shadow:0 4px 10px rgba(0,0,0,0.22);
+    transform:rotate(-18deg) scale(0);
+    opacity:0;
+    pointer-events:none;
+  }
+  .stamp.bad-stamp{
+    border-color:var(--bad);
+    color:var(--bad);
+  }
+  .stamp.good-stamp{
+    border-color:var(--good);
+    color:var(--good);
+  }
+  .stamp.show{
+    animation:stampIn .35s cubic-bezier(.36,1.6,.4,1) forwards;
+  }
+  @keyframes stampIn{
+    0%{ transform:rotate(-18deg) scale(2.2); opacity:0; }
+    60%{ transform:rotate(-18deg) scale(0.9); opacity:1; }
+    100%{ transform:rotate(-18deg) scale(1); opacity:1; }
+  }
+
+  .scorebar{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-top:20px;
+    font-size:0.9rem;
+    font-weight:700;
+    color:#6b6353;
+  }
+  .score-value{ color:var(--ink-blue); font-size:1.05rem; }
+  .reset-link{
+    background:none;
+    border:none;
+    color:#a08f5f;
+    text-decoration:underline;
+    font-size:0.85rem;
+    cursor:pointer;
+    padding:0;
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .stamp.show{ animation:none; opacity:1; transform:rotate(-18deg) scale(1); }
+    .choice-btn:hover{ transform:none; }
+  }
+
+  @media (max-width:420px){
+    .page{ padding:22px 14px 22px 34px; }
+    .page::before{ left:22px; }
+    h1{ font-size:1.7rem; }
+    .prompt{ font-size:1.5rem; }
+  }
+</style>
+</head>
+<body>
+
+<div class="page">
+  <header>
+    <h1>Le Cahier de Conjugaison ✎</h1>
+    <div class="subtitle">5<sup>e</sup> et 6<sup>e</sup> année — s'entraîner avec les verbes</div>
+  </header>
+
+  <div class="tabs" id="tabs"></div>
+  <div class="groupSelect" id="groupSelect"></div>
+  <div class="groupSelect">
+    <button class="chip challenge" id="challengeToggle">⏱ Mode défi (10 s)</button>
+  </div>
+  <div class="timer-wrap" id="timerWrap"><div class="timer-fill" id="timerFill"></div></div>
+
+  <div class="card">
+    <div class="stamp" id="stamp"></div>
+    <div class="prompt-label" id="promptLabel">Conjugue le verbe</div>
+    <div class="prompt" id="prompt">…</div>
+    <div class="choices" id="choices"></div>
+    <div class="feedback" id="feedback"></div>
+    <button class="next-btn" id="nextBtn">Question suivante →</button>
+  </div>
+
+  <div class="scorebar">
+    <span>Score : <span class="score-value" id="scoreValue">0 / 0</span></span>
+    <button class="reset-link" id="resetBtn">recommencer</button>
+  </div>
+</div>
+
+<script>
+// ---------- Données pédagogiques ----------
+const TENSES = [
+  { key: "present", label: "Présent" },
+  { key: "futurProche", label: "Futur proche" },
+  { key: "futur", label: "Futur simple" },
+  { key: "imparfait", label: "Imparfait" },
+  { key: "passeCompose", label: "Passé composé" }
+];
+
+const GROUPS = [
+  { key: "g1", label: "1er groupe (-er)" },
+  { key: "g2", label: "2e groupe (-ir)" },
+  { key: "g3", label: "3e groupe" }
+];
+
+const PRONOUNS = ["je","tu","il/elle","nous","vous","ils/elles"];
+
+// verbe -> groupe, et pour chaque temps: 6 formes conjuguées (dans l'ordre de PRONOUNS)
+const VERBS = {
+  g1: [
+    { inf:"parler", forms:{
+      present:["parle","parles","parle","parlons","parlez","parlent"],
+      futur:["parlerai","parleras","parlera","parlerons","parlerez","parleront"],
+      imparfait:["parlais","parlais","parlait","parlions","parliez","parlaient"],
+      passeCompose:["ai parlé","as parlé","a parlé","avons parlé","avez parlé","ont parlé"]
+    }},
+    { inf:"jouer", forms:{
+      present:["joue","joues","joue","jouons","jouez","jouent"],
+      futur:["jouerai","joueras","jouera","jouerons","jouerez","joueront"],
+      imparfait:["jouais","jouais","jouait","jouions","jouiez","jouaient"],
+      passeCompose:["ai joué","as joué","a joué","avons joué","avez joué","ont joué"]
+    }},
+    { inf:"manger", forms:{
+      present:["mange","manges","mange","mangeons","mangez","mangent"],
+      futur:["mangerai","mangeras","mangera","mangerons","mangerez","mangeront"],
+      imparfait:["mangeais","mangeais","mangeait","mangions","mangiez","mangeaient"],
+      passeCompose:["ai mangé","as mangé","a mangé","avons mangé","avez mangé","ont mangé"]
+    }},
+    { inf:"chanter", forms:{
+      present:["chante","chantes","chante","chantons","chantez","chantent"],
+      futur:["chanterai","chanteras","chantera","chanterons","chanterez","chanteront"],
+      imparfait:["chantais","chantais","chantait","chantions","chantiez","chantaient"],
+      passeCompose:["ai chanté","as chanté","a chanté","avons chanté","avez chanté","ont chanté"]
+    }},
+    { inf:"regarder", forms:{
+      present:["regarde","regardes","regarde","regardons","regardez","regardent"],
+      futur:["regarderai","regarderas","regardera","regarderons","regarderez","regarderont"],
+      imparfait:["regardais","regardais","regardait","regardions","regardiez","regardaient"],
+      passeCompose:["ai regardé","as regardé","a regardé","avons regardé","avez regardé","ont regardé"]
+    }},
+    { inf:"aimer", forms:{
+      present:["aime","aimes","aime","aimons","aimez","aiment"],
+      futur:["aimerai","aimeras","aimera","aimerons","aimerez","aimeront"],
+      imparfait:["aimais","aimais","aimait","aimions","aimiez","aimaient"],
+      passeCompose:["ai aimé","as aimé","a aimé","avons aimé","avez aimé","ont aimé"]
+    }},
+    { inf:"donner", forms:{
+      present:["donne","donnes","donne","donnons","donnez","donnent"],
+      futur:["donnerai","donneras","donnera","donnerons","donnerez","donneront"],
+      imparfait:["donnais","donnais","donnait","donnions","donniez","donnaient"],
+      passeCompose:["ai donné","as donné","a donné","avons donné","avez donné","ont donné"]
+    }}
+  ],
+  g2: [
+    { inf:"finir", forms:{
+      present:["finis","finis","finit","finissons","finissez","finissent"],
+      futur:["finirai","finiras","finira","finirons","finirez","finiront"],
+      imparfait:["finissais","finissais","finissait","finissions","finissiez","finissaient"],
+      passeCompose:["ai fini","as fini","a fini","avons fini","avez fini","ont fini"]
+    }},
+    { inf:"choisir", forms:{
+      present:["choisis","choisis","choisit","choisissons","choisissez","choisissent"],
+      futur:["choisirai","choisiras","choisira","choisirons","choisirez","choisiront"],
+      imparfait:["choisissais","choisissais","choisissait","choisissions","choisissiez","choisissaient"],
+      passeCompose:["ai choisi","as choisi","a choisi","avons choisi","avez choisi","ont choisi"]
+    }},
+    { inf:"réussir", forms:{
+      present:["réussis","réussis","réussit","réussissons","réussissez","réussissent"],
+      futur:["réussirai","réussiras","réussira","réussirons","réussirez","réussiront"],
+      imparfait:["réussissais","réussissais","réussissait","réussissions","réussissiez","réussissaient"],
+      passeCompose:["ai réussi","as réussi","a réussi","avons réussi","avez réussi","ont réussi"]
+    }},
+    { inf:"grandir", forms:{
+      present:["grandis","grandis","grandit","grandissons","grandissez","grandissent"],
+      futur:["grandirai","grandiras","grandira","grandirons","grandirez","grandiront"],
+      imparfait:["grandissais","grandissais","grandissait","grandissions","grandissiez","grandissaient"],
+      passeCompose:["ai grandi","as grandi","a grandi","avons grandi","avez grandi","ont grandi"]
+    }},
+    { inf:"obéir", forms:{
+      present:["obéis","obéis","obéit","obéissons","obéissez","obéissent"],
+      futur:["obéirai","obéiras","obéira","obéirons","obéirez","obéiront"],
+      imparfait:["obéissais","obéissais","obéissait","obéissions","obéissiez","obéissaient"],
+      passeCompose:["ai obéi","as obéi","a obéi","avons obéi","avez obéi","ont obéi"]
+    }}
+  ],
+  g3: [
+    { inf:"être", forms:{
+      present:["suis","es","est","sommes","êtes","sont"],
+      futur:["serai","seras","sera","serons","serez","seront"],
+      imparfait:["étais","étais","était","étions","étiez","étaient"],
+      passeCompose:["ai été","as été","a été","avons été","avez été","ont été"]
+    }},
+    { inf:"avoir", forms:{
+      present:["ai","as","a","avons","avez","ont"],
+      futur:["aurai","auras","aura","aurons","aurez","auront"],
+      imparfait:["avais","avais","avait","avions","aviez","avaient"],
+      passeCompose:["ai eu","as eu","a eu","avons eu","avez eu","ont eu"]
+    }},
+    { inf:"aller", forms:{
+      present:["vais","vas","va","allons","allez","vont"],
+      futur:["irai","iras","ira","irons","irez","iront"],
+      imparfait:["allais","allais","allait","allions","alliez","allaient"],
+      passeCompose:["suis allé(e)","es allé(e)","est allé(e)","sommes allé(e)s","êtes allé(e)s","sont allé(e)s"]
+    }},
+    { inf:"faire", forms:{
+      present:["fais","fais","fait","faisons","faites","font"],
+      futur:["ferai","feras","fera","ferons","ferez","feront"],
+      imparfait:["faisais","faisais","faisait","faisions","faisiez","faisaient"],
+      passeCompose:["ai fait","as fait","a fait","avons fait","avez fait","ont fait"]
+    }},
+    { inf:"venir", forms:{
+      present:["viens","viens","vient","venons","venez","viennent"],
+      futur:["viendrai","viendras","viendra","viendrons","viendrez","viendront"],
+      imparfait:["venais","venais","venait","venions","veniez","venaient"],
+      passeCompose:["suis venu(e)","es venu(e)","est venu(e)","sommes venu(e)s","êtes venu(e)s","sont venu(e)s"]
+    }},
+    { inf:"prendre", forms:{
+      present:["prends","prends","prend","prenons","prenez","prennent"],
+      futur:["prendrai","prendras","prendra","prendrons","prendrez","prendront"],
+      imparfait:["prenais","prenais","prenait","prenions","preniez","prenaient"],
+      passeCompose:["ai pris","as pris","a pris","avons pris","avez pris","ont pris"]
+    }},
+    { inf:"voir", forms:{
+      present:["vois","vois","voit","voyons","voyez","voient"],
+      futur:["verrai","verras","verra","verrons","verrez","verront"],
+      imparfait:["voyais","voyais","voyait","voyions","voyiez","voyaient"],
+      passeCompose:["ai vu","as vu","a vu","avons vu","avez vu","ont vu"]
+    }},
+    { inf:"pouvoir", forms:{
+      present:["peux","peux","peut","pouvons","pouvez","peuvent"],
+      futur:["pourrai","pourras","pourra","pourrons","pourrez","pourront"],
+      imparfait:["pouvais","pouvais","pouvait","pouvions","pouviez","pouvaient"],
+      passeCompose:["ai pu","as pu","a pu","avons pu","avez pu","ont pu"]
+    }},
+    { inf:"dire", forms:{
+      present:["dis","dis","dit","disons","dites","disent"],
+      futur:["dirai","diras","dira","dirons","direz","diront"],
+      imparfait:["disais","disais","disait","disions","disiez","disaient"],
+      passeCompose:["ai dit","as dit","a dit","avons dit","avez dit","ont dit"]
+    }},
+    { inf:"vouloir", forms:{
+      present:["veux","veux","veut","voulons","voulez","veulent"],
+      futur:["voudrai","voudras","voudra","voudrons","voudrez","voudront"],
+      imparfait:["voulais","voulais","voulait","voulions","vouliez","voulaient"],
+      passeCompose:["ai voulu","as voulu","a voulu","avons voulu","avez voulu","ont voulu"]
+    }}
+  ]
+};
+
+// Le futur proche (aller + infinitif) se construit automatiquement pour chaque verbe
+const AUX_ALLER = ["vais","vas","va","allons","allez","vont"];
+Object.values(VERBS).forEach(list=>{
+  list.forEach(v=>{
+    v.forms.futurProche = AUX_ALLER.map(a => `${a} ${v.inf}`);
+  });
+});
+
+const STAMPS_GOOD = ["Bravo !","Excellent !","Parfait !","Très bien !"];
+const STAMPS_BAD = ["Presque !","Réessaie !","Attention !"];
+const TIMER_SECONDS = 10;
+
+// ---------- État ----------
+let state = {
+  tense: "present",
+  group: "g1",
+  score: 0,
+  total: 0,
+  current: null,
+  answered: false,
+  challengeMode: false,
+  timerId: null
+};
+
+// ---------- Rendu des filtres ----------
+function renderTabs(){
+  const tabsEl = document.getElementById("tabs");
+  tabsEl.innerHTML = "";
+  TENSES.forEach(t=>{
+    const btn = document.createElement("button");
+    btn.className = "tab" + (t.key===state.tense ? " active" : "");
+    btn.textContent = t.label;
+    btn.onclick = ()=>{ state.tense = t.key; renderTabs(); newQuestion(); };
+    tabsEl.appendChild(btn);
+  });
+}
+
+function renderGroups(){
+  const gEl = document.getElementById("groupSelect");
+  gEl.innerHTML = "";
+  GROUPS.forEach(g=>{
+    const btn = document.createElement("button");
+    btn.className = "chip" + (g.key===state.group ? " active" : "");
+    btn.textContent = g.label;
+    btn.onclick = ()=>{ state.group = g.key; renderGroups(); newQuestion(); };
+    gEl.appendChild(btn);
+  });
+}
+
+// ---------- Logique du quiz ----------
+function pickRandom(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+
+function buildQuestion(){
+  const verbList = VERBS[state.group];
+  const verb = pickRandom(verbList);
+  const pronounIndex = Math.floor(Math.random()*PRONOUNS.length);
+  const correctForm = verb.forms[state.tense][pronounIndex];
+
+  // construire 3 distracteurs plausibles : autres formes du même verbe/temps
+  const allForms = verb.forms[state.tense];
+  let pool = allForms.filter((f,i)=> i!==pronounIndex && f!==correctForm);
+  // s'il n'y a pas assez de formes distinctes, piocher chez un autre verbe du même groupe/temps
+  while(pool.length < 3){
+    const otherVerb = pickRandom(verbList);
+    const otherForms = otherVerb.forms[state.tense];
+    const candidate = pickRandom(otherForms);
+    if(candidate !== correctForm && !pool.includes(candidate)) pool.push(candidate);
+  }
+  pool = pool.sort(()=>Math.random()-0.5).slice(0,3);
+
+  const choices = [...pool, correctForm].sort(()=>Math.random()-0.5);
+
+  return {
+    verb: verb.inf,
+    pronoun: PRONOUNS[pronounIndex],
+    correct: correctForm,
+    choices
+  };
+}
+
+function newQuestion(){
+  clearTimer();
+  state.current = buildQuestion();
+  state.answered = false;
+  document.getElementById("stamp").className = "stamp";
+  document.getElementById("feedback").textContent = "";
+  document.getElementById("feedback").className = "feedback";
+  document.getElementById("nextBtn").style.display = "none";
+
+  document.getElementById("prompt").innerHTML =
+    `<b>${state.current.pronoun}</b> ___ (${state.current.verb})`;
+
+  const choicesEl = document.getElementById("choices");
+  choicesEl.innerHTML = "";
+  state.current.choices.forEach(choice=>{
+    const btn = document.createElement("button");
+    btn.className = "choice-btn";
+    btn.textContent = choice;
+    btn.onclick = ()=> selectAnswer(choice, btn);
+    choicesEl.appendChild(btn);
+  });
+
+  if(state.challengeMode) startTimer();
+}
+
+// ---------- Mode défi : minuteur ----------
+function startTimer(){
+  const wrap = document.getElementById("timerWrap");
+  const fill = document.getElementById("timerFill");
+  wrap.classList.add("show");
+  fill.style.transition = "none";
+  fill.style.width = "100%";
+  // forcer le recalcul avant de lancer la transition
+  void fill.offsetWidth;
+  fill.style.transition = `width ${TIMER_SECONDS}s linear`;
+  fill.style.width = "0%";
+  state.timerId = setTimeout(handleTimeout, TIMER_SECONDS * 1000);
+}
+
+function clearTimer(){
+  if(state.timerId){
+    clearTimeout(state.timerId);
+    state.timerId = null;
+  }
+  const wrap = document.getElementById("timerWrap");
+  const fill = document.getElementById("timerFill");
+  wrap.classList.remove("show");
+  fill.style.transition = "none";
+  fill.style.width = "100%";
+}
+
+function handleTimeout(){
+  if(state.answered) return;
+  state.answered = true;
+  state.total += 1;
+
+  document.querySelectorAll(".choice-btn").forEach(b=>{
+    b.disabled = true;
+    if(b.textContent === state.current.correct) b.classList.add("correct");
+  });
+
+  const feedback = document.getElementById("feedback");
+  feedback.textContent = `Temps écoulé ! La bonne réponse était : ${state.current.correct}`;
+  feedback.className = "feedback bad";
+
+  const stamp = document.getElementById("stamp");
+  stamp.textContent = pickRandom(STAMPS_BAD);
+  stamp.className = "stamp show bad-stamp";
+
+  document.getElementById("nextBtn").style.display = "inline-block";
+  updateScore();
+}
+
+function selectAnswer(choice, btnEl){
+  if(state.answered) return;
+  clearTimer();
+  state.answered = true;
+  state.total += 1;
+
+  const isCorrect = choice === state.current.correct;
+  if(isCorrect) state.score += 1;
+
+  // désactiver tous les boutons et colorer
+  document.querySelectorAll(".choice-btn").forEach(b=>{
+    b.disabled = true;
+    if(b.textContent === state.current.correct) b.classList.add("correct");
+    else if(b === btnEl) b.classList.add("wrong");
+  });
+
+  const feedback = document.getElementById("feedback");
+  feedback.textContent = isCorrect
+    ? "C'est exact !"
+    : `La bonne réponse était : ${state.current.correct}`;
+  feedback.className = "feedback " + (isCorrect ? "good" : "bad");
+
+  const stamp = document.getElementById("stamp");
+  stamp.textContent = isCorrect ? pickRandom(STAMPS_GOOD) : pickRandom(STAMPS_BAD);
+  stamp.className = "stamp show " + (isCorrect ? "good-stamp" : "bad-stamp");
+
+  document.getElementById("nextBtn").style.display = "inline-block";
+  updateScore();
+}
+
+function updateScore(){
+  document.getElementById("scoreValue").textContent = `${state.score} / ${state.total}`;
+}
+
+document.getElementById("nextBtn").onclick = newQuestion;
+document.getElementById("resetBtn").onclick = ()=>{
+  state.score = 0;
+  state.total = 0;
+  updateScore();
+  newQuestion();
+};
+
+document.getElementById("challengeToggle").onclick = (e)=>{
+  state.challengeMode = !state.challengeMode;
+  e.target.classList.toggle("active", state.challengeMode);
+  newQuestion();
+};
+
+// ---------- Démarrage ----------
+renderTabs();
+renderGroups();
+newQuestion();
+updateScore();
+
+// ---------- PWA : enregistrement du service worker ----------
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("service-worker.js").catch(() => {
+      // échec silencieux si le fichier n'est pas servi via un vrai serveur
+    });
+  });
+}
+</script>
+
+</body>
+</html>
