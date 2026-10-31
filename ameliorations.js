@@ -263,6 +263,26 @@
     catch (e) { speechSynthesis.onvoiceschanged = chargerVoix; }
   }
   function infoSon(texte) { if (ecouterInfo) ecouterInfo.textContent = texte; }
+  function dire(texte, tentative) {
+    var u = new SpeechSynthesisUtterance(texte);
+    u.lang = 'fr-FR';
+    u.rate = 0.85;
+    // 1re tentative : méthode simple (voix par défaut du téléphone, comme à l'origine)
+    // 2e tentative : voix française choisie explicitement
+    if (tentative === 1 && voixFr) u.voice = voixFr;
+    u.onerror = function (ev) {
+      var code = ev && ev.error ? ev.error : 'inconnu';
+      if (code === 'canceled' || code === 'interrupted') return;
+      if (tentative < 1) {
+        try { speechSynthesis.cancel(); speechSynthesis.resume(); } catch (e) { /* ignoré */ }
+        setTimeout(function () { dire(texte, tentative + 1); }, 100);
+        return;
+      }
+      infoSon('Le son n\'a pas démarré (' + code + '). Vérifie la synthèse vocale du téléphone.');
+    };
+    speechSynthesis.speak(u);
+  }
+
   function parler(texte) {
     if (!voixOk) return;
     infoSon('');
@@ -272,18 +292,7 @@
     }
     try {
       speechSynthesis.cancel();
-      speechSynthesis.resume();
-      setTimeout(function () {
-        try {
-          var u = new SpeechSynthesisUtterance(texte);
-          u.lang = 'fr-FR';
-          u.rate = 0.85;
-          u.volume = 1;
-          if (voixFr) u.voice = voixFr;
-          u.onerror = function () { infoSon('Le son n\'a pas démarré. Vérifie le volume du téléphone.'); };
-          speechSynthesis.speak(u);
-        } catch (e) { infoSon('Le son n\'a pas démarré.'); }
-      }, 80);
+      dire(texte, 0);
     } catch (e) { infoSon('Le son n\'a pas démarré.'); }
   }
 
