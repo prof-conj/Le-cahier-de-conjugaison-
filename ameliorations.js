@@ -1,11 +1,13 @@
-/* ameliorations.js — à charger APRÈS le script principal de index.html
+ /* ameliorations.js — à charger APRÈS le script principal de index.html
    1) Niveaux scolaires (3e à 6e année) qui limitent les temps et groupes proposés
    2) Séries de 10 ou 20 questions avec écran de résultat détaillé
    3) Mode « Écrire la réponse » (saisie au clavier au lieu du QCM)
    4) Mode « Mes erreurs » : révision des questions ratées (mémorisées sur l'appareil)
    5) Futur proche retiré (on garde le futur simple)
    6) Rappel de la règle quand l'élève se trompe
-   7) Bouton « Écouter » (synthèse vocale du téléphone, voix française) */
+   7) Bouton « Écouter » (synthèse vocale du téléphone, voix française)
+   8) Interface épurée : tous les réglages sont rangés derrière un bouton « ⚙ Réglages »,
+      l'exercice apparaît directement sous le titre */
 (function () {
   'use strict';
 
@@ -422,6 +424,7 @@
       initSerie();
       derniere = signature();
     }
+    majResume();
     if (serie.done >= serie.n) {
       afficherResultat();
       majProgression();
@@ -522,6 +525,52 @@
   rangModes.appendChild(chipSaisie);
   rangModes.appendChild(chipErreurs);
   ligneDefi.parentNode.insertBefore(rangModes, ligneDefi.nextSibling);
+
+  /* ---------- Interface épurée : réglages repliables ---------- */
+  var enTete = document.querySelector('header');
+  if (enTete) enTete.style.marginBottom = '10px';
+
+  var barre = document.createElement('div');
+  barre.style.cssText = 'display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:0 0 12px';
+  var resume = document.createElement('span');
+  resume.style.cssText = 'font-size:0.85rem;font-weight:700;color:#6b6353;flex:1;min-width:0';
+
+  var conteneur = document.createElement('div');
+  conteneur.id = 'reglages';
+  conteneur.style.cssText = 'display:none;background:rgba(255,255,255,0.5);border:2px dashed #cabf99;' +
+    'border-radius:14px;padding:12px 12px 4px;margin:0 0 14px';
+
+  var btnReglages = bouton('⚙ Réglages', function () {
+    var ouvert = conteneur.style.display !== 'none';
+    conteneur.style.display = ouvert ? 'none' : 'block';
+    btnReglages.textContent = ouvert ? '⚙ Réglages' : '✕ Fermer';
+    btnReglages.setAttribute('aria-expanded', ouvert ? 'false' : 'true');
+  }, false);
+  btnReglages.setAttribute('aria-expanded', 'false');
+  btnReglages.style.padding = '8px 16px';
+
+  barre.appendChild(btnReglages);
+  barre.appendChild(resume);
+  rangNiveau.parentNode.insertBefore(barre, rangNiveau);
+  rangNiveau.parentNode.insertBefore(conteneur, rangNiveau);
+  [rangNiveau, rangLongueur, onglets, document.getElementById('groupSelect'), ligneDefi, rangModes]
+    .forEach(function (bloc) { if (bloc) conteneur.appendChild(bloc); });
+
+  function majResume() {
+    var niv = niveauActuel();
+    var texte;
+    if (mode.erreurs) {
+      texte = niv.court + ' · Révision de mes erreurs';
+    } else {
+      var t = TENSES.filter(function (x) { return x.key === state.tense; })[0];
+      var g = GROUPS.filter(function (x) { return x.key === state.group; })[0];
+      texte = niv.court + ' · ' + (t ? t.label : '') + ' · ' + (g ? g.label : '');
+    }
+    texte += ' · ' + reglages.longueur + ' q.';
+    if (mode.saisie) texte += ' · ✍';
+    if (state.challengeMode) texte += ' · ⏱';
+    resume.textContent = texte;
+  }
 
   /* ---------- Démarrage ---------- */
   appliquerNiveau();
